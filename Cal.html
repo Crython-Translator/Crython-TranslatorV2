@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crython Translator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  .translator {
+    display: flex;
+    gap: 20px;
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  textarea {
+    width: 300px;
+    height: 200px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: none;
+  }
+  h3 {
+    text-align: center;
+    margin-bottom: 5px;
+  }
+  .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  button {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+  }
+  button:hover {
+    background-color: #45a049;
+  }
+  #cal {
+    margin-top: 20px;
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    max-width: 650px;
+    word-wrap: break-word;
+    display: none;
+  }
+  .symbol-container {
+    display: inline-block;
+    text-align: center;
+    margin: 4px;
+    cursor: pointer;
+  }
+  .symbol {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: #eee;
+    font-weight: bold;
+    transition: background-color 0.2s;
+  }
+  .symbol:hover {
+    background-color: #4CAF50;
+    color: white;
+  }
+  .letter {
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .space-btn, .del-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 4px;
+    border-radius: 6px;
+    background-color: #ccc;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .space-btn:hover, .del-btn:hover {
+    background-color: #999;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<h1>Crython Translator</h1>
+
+<div class="translator">
+  <div>
+    <h3>Crython</h3>
+    <textarea id="crython" placeholder="Type Crython here..."></textarea>
+    <div class="buttons">
+      <button onclick="copyText('crython')">Copy Crython</button>
+    </div>
+  </div>
+  <div>
+    <h3>English</h3>
+    <textarea id="english" placeholder="Type English here..."></textarea>
+    <div class="buttons">
+      <button onclick="copyText('english')">Copy English</button>
+    </div>
+  </div>
+</div>
+
+<div class="buttons">
+  <button onclick="toggleCal()">Show Cal [Crython Alphabet]</button>
+</div>
+
+<div id="cal"></div>
+
+<script>
+const crythonToEnglish = {
+  '/': 'a', '\\': 'b', '|': 'c', '~': 'd', 'π£': 'e', '#': 'f', '*': 'g',
+  '^': 'h', '"': 'i', "'": 'j', '§': 'k', '(': 'l', '∆': 'm', '°': 'n',
+  '&': 'o', '•': 'p', '✓': 'q', '[': 'r', '=': 's', '%': 't', '×': 'u',
+  '$': 'v', '}': 'w', '<': 'x', '>': 'y', '?': 'z'
+};
+const englishToCrython = Object.fromEntries(
+  Object.entries(crythonToEnglish).map(([k,v]) => [v,k])
+);
+
+// Translate Crython → English
+function translateCrython(text) {
+  let result = '';
+  let i = 0;
+  while (i < text.length) {
+    if (text.slice(i, i+2) === 'π£') {
+      result += 'e';
+      i += 2;
+    } else if (crythonToEnglish[text[i]]) {
+      result += crythonToEnglish[text[i]];
+      i++;
+    } else {
+      result += text[i];
+      i++;
+    }
+  }
+  return result;
+}
+
+// Translate English → Crython
+function translateEnglish(text) {
+  text = text.toLowerCase();
+  let result = '';
+  for (let char of text) {
+    if (englishToCrython[char]) {
+      result += englishToCrython[char];
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
+// Live translation
+document.getElementById('crython').addEventListener('input', (e) => {
+  document.getElementById('english').value = translateCrython(e.target.value);
+});
+
+document.getElementById('english').addEventListener('input', (e) => {
+  document.getElementById('crython').value = translateEnglish(e.target.value);
+});
+
+// Copy to clipboard
+function copyText(id) {
+  const textarea = document.getElementById(id);
+  textarea.select();
+  textarea.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  alert(id.charAt(0).toUpperCase() + id.slice(1) + " copied!");
+}
+
+// Toggle Crython Alphabet
+function toggleCal() {
+  const calDiv = document.getElementById('cal');
+  if (calDiv.style.display === 'none' || calDiv.innerHTML === '') {
+    let html = '';
+    for (let symbol in crythonToEnglish) {
+      html += `
+        <div class="symbol-container" onclick="insertCrython('${symbol}')">
+          <span class="symbol">${symbol}</span>
+          <span class="letter">${crythonToEnglish[symbol]}</span>
+        </div>`;
+    }
+    // Add space and delete buttons
+    html += `<span class="space-btn" onclick="insertCrython(' ')">SPACE</span>`;
+    html += `<span class="del-btn" onclick="deleteCrython()">DEL</span>`;
+    calDiv.innerHTML = html;
+    calDiv.style.display = 'block';
+  } else {
+    calDiv.style.display = 'none';
+  }
+}
+
+// Insert Crython symbol into the textarea
+function insertCrython(symbol) {
+  const textarea = document.getElementById('crython');
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  textarea.value = text.slice(0, start) + symbol + text.slice(end);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = start + symbol.length;
+  document.getElementById('english').value = translateCrython(textarea.value);
+}
+
+// Delete last character from Crython textarea
+function deleteCrython() {
+  const textarea = document.getElementById('crython');
+  textarea.value = textarea.value.slice(0, -1);
+  document.getElementById('english').value = translateCrython(textarea.value);
+}
+</script>
+
+</body>
+</html>
